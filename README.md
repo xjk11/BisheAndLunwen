@@ -13,7 +13,7 @@
 我是学习黑马程序员然后做出这个项目。不会运行的推荐学习这套视频，讲的很好。
 https://www.bilibili.com/video/BV1pf421B71v/?spm_id_from=333.337.search-card.all.click&vd_source=9a13853d0f3f8985eeea73cbc303d3c1
 
-这个项目我亲自克隆验证了能够运行。
+本项目我亲自克隆验证了能够运行。
 
 数据库要执行四个sql文件(先运行ry和quatrz再运行edu）。  
 
