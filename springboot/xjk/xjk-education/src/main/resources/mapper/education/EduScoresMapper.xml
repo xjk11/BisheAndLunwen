@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xjk.education.mapper.EduScoresMapper">
+
+    <resultMap type="EduScores" id="EduScoresResult">
+        <result property="scoreId"    column="score_id"    />
+        <result property="studentId"    column="student_id"    />
+        <result property="courseId"    column="course_id"    />
+        <result property="teacherId"    column="teacher_id"    />
+        <result property="examScore"    column="exam_score"    />
+        <result property="totalScore"    column="total_score"    />
+        <result property="startTime"    column="start_time"    />
+    </resultMap>
+
+    <sql id="selectEduScoresVo">
+        select score_id, student_id, course_id, teacher_id, exam_score, total_score, start_time from edu_scores
+    </sql>
+
+    <!-- 新增的复杂查询方法 -->
+    <select id="getEduScoresDetails" parameterType="EduScores" resultMap="EduScoresDetailResult">
+        SELECT
+        score_id,
+        sc.user_id AS stu_user_id,
+        t.user_id AS tea_user_id,
+        sc.name AS student_name,
+        cl.class_name AS class_name,
+        es.start_time AS academic_year,
+        c.course_id AS course_id,
+        c.course_name AS course_name,
+        t.name AS teacher_name,
+        c.credits AS credits,
+        es.exam_score AS exam_score,
+        es.total_score AS total_score,
+        c.dept_id AS department_id
+        FROM
+        edu_scores es
+        JOIN
+        edu_students sc ON es.student_id = sc.student_id
+        JOIN
+        edu_course c ON es.course_id = c.course_id
+        JOIN
+        edu_teachers t ON es.teacher_id = t.teacher_id
+        JOIN
+        edu_class cl ON sc.class_id = cl.class_id
+        <where>
+            <if test="studentId != null">
+                AND sc.student_id = #{studentId}
+            </if>
+            <if test="courseId != null">
+                AND c.course_id = #{courseId}
+            </if>
+            <if test="teacherId != null">
+                AND t.teacher_id = #{teacherId}
+            </if>
+            <if test="examScore != null">
+                AND es.exam_score = #{examScore}
+            </if>
+            <if test="totalScore != null and totalScore != ''">
+                AND es.total_score = #{totalScore}
+            </if>
+            <if test="startTime != null and startTime != ''">
+                AND es.start_time = #{startTime}
+            </if>
+            <if test="stuUserId != null">
+                AND sc.user_id = #{stuUserId}
+            </if>
+            <if test="teaUserId != null">
+                AND t.user_id = #{teaUserId}
+            </if>
+            <if test="courseName != null and courseName != ''"> and c.course_name like concat('%', #{courseName}, '%')</if>
+            <if test="studentName != null and studentName != ''"> and sc.name like concat('%', #{studentName}, '%')</if>
+        </where>
+    </select>
+
+    <!-- 新增的ResultMap用于映射复杂查询的结果 -->
+    <resultMap type="com.xjk.education.domain.vo.EduScoresDetailVo" id="EduScoresDetailResult">
+        <result property="stuUserId"    column="stu_user_id"    />
+        <result property="teaUserId"    column="tea_user_id"    />
+        <result property="scoreId"    column="score_id"    />
+        <result property="studentName" column="student_name"/>
+        <result property="className" column="class_name"/>
+        <result property="academicYear" column="academic_year"/>
+        <result property="courseId" column="course_id"/>
+        <result property="courseName" column="course_name"/>
+        <result property="teacherName" column="teacher_name"/>
+        <result property="credits" column="credits"/>
+        <result property="examScore" column="exam_score"/>
+        <result property="totalScore" column="total_score"/>
+        <result property="departmentId" column="department_id"/>
+    </resultMap>
+
+
+
+    <select id="selectEduScoresList" parameterType="EduScores" resultMap="EduScoresResult">
+        <include refid="selectEduScoresVo"/>
+        <where>
+            <if test="scoreId != null "> and score_id = #{scoreId}</if>
+            <if test="studentId != null "> and student_id = #{studentId}</if>
+            <if test="courseId != null "> and course_id = #{courseId}</if>
+            <if test="teacherId != null "> and teacher_id = #{teacherId}</if>
+            <if test="examScore != null "> and exam_score = #{examScore}</if>
+            <if test="totalScore != null  and totalScore != ''"> and total_score = #{totalScore}</if>
+            <if test="startTime != null  and startTime != ''"> and start_time = #{startTime}</if>
+        </where>
+    </select>
+
+    <select id="selectEduScoresByScoreId" parameterType="Long" resultMap="EduScoresResult">
+        <include refid="selectEduScoresVo"/>
+        where score_id = #{scoreId}
+    </select>
+
+    <insert id="insertEduScores" parameterType="EduScores" useGeneratedKeys="true" keyProperty="scoreId">
+        insert into edu_scores
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="studentId != null">student_id,</if>
+            <if test="courseId != null">course_id,</if>
+            <if test="teacherId != null">teacher_id,</if>
+            <if test="examScore != null">exam_score,</if>
+            <if test="totalScore != null and totalScore != ''">total_score,</if>
+            <if test="startTime != null and startTime != ''">start_time,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="studentId != null">#{studentId},</if>
+            <if test="courseId != null">#{courseId},</if>
+            <if test="teacherId != null">#{teacherId},</if>
+            <if test="examScore != null">#{examScore},</if>
+            <if test="totalScore != null and totalScore != ''">#{totalScore},</if>
+            <if test="startTime != null and startTime != ''">#{startTime},</if>
+         </trim>
+    </insert>
+
+    <insert id="importInsertEduScores" parameterType="java.util.List" useGeneratedKeys="true" keyProperty="scoreId">
+        <foreach collection="list" item="eduScore" separator=";">
+            insert into edu_scores
+            <trim prefix="(" suffix=")" suffixOverrides=",">
+                <if test="eduScore.studentId != null">student_id,</if>
+                <if test="eduScore.courseId != null">course_id,</if>
+                <if test="eduScore.teacherId != null">teacher_id,</if>
+                <if test="eduScore.examScore != null">exam_score,</if>
+                <if test="eduScore.totalScore != null and eduScore.totalScore != ''">total_score,</if>
+                <if test="eduScore.startTime != null and eduScore.startTime != ''">start_time,</if>
+            </trim>
+            <trim prefix="values (" suffix=")" suffixOverrides=",">
+                <if test="eduScore.studentId != null">#{eduScore.studentId},</if>
+                <if test="eduScore.courseId != null">#{eduScore.courseId},</if>
+                <if test="eduScore.teacherId != null">#{eduScore.teacherId},</if>
+                <if test="eduScore.examScore != null">#{eduScore.examScore},</if>
+                <if test="eduScore.totalScore != null and eduScore.totalScore != ''">#{eduScore.totalScore},</if>
+                <if test="eduScore.startTime != null and eduScore.startTime != ''">#{eduScore.startTime},</if>
+            </trim>
+        </foreach>
+    </insert>
+
+    <update id="updateEduScores" parameterType="EduScores">
+        update edu_scores
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="studentId != null">student_id = #{studentId},</if>
+            <if test="courseId != null">course_id = #{courseId},</if>
+            <if test="teacherId != null">teacher_id = #{teacherId},</if>
+            <if test="examScore != null">exam_score = #{examScore},</if>
+            <if test="totalScore != null and totalScore != ''">total_score = #{totalScore},</if>
+            <if test="startTime != null and startTime != ''">start_time = #{startTime},</if>
+        </trim>
+        where score_id = #{scoreId}
+    </update>
+
+    <delete id="deleteEduScoresByScoreId" parameterType="Long">
+        delete from edu_scores where score_id = #{scoreId}
+    </delete>
+
+    <delete id="deleteEduScoresByScoreIds" parameterType="String">
+        delete from edu_scores where score_id in
+        <foreach item="scoreId" collection="array" open="(" separator="," close=")">
+            #{scoreId}
+        </foreach>
+    </delete>
+</mapper>

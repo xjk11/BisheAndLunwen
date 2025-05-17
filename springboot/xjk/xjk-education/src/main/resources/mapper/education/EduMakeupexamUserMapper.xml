@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xjk.education.mapper.EduMakeupexamUserMapper">
+
+    <resultMap type="EduMakeupexamUser" id="EduMakeupexamUserResult">
+        <result property="userMakeupexamId"    column="user_makeupexam_id"    />
+        <result property="examId"    column="exam_id"    />
+        <result property="userId"    column="user_id"    />
+    </resultMap>
+
+    <sql id="selectEduMakeupexamUserVo">
+        select user_makeupexam_id, exam_id, user_id from edu_makeupexam_user
+    </sql>
+
+    <select id="selectEduMakeupexamUserList" parameterType="EduMakeupexamUser" resultMap="EduMakeupexamUserResult">
+        <include refid="selectEduMakeupexamUserVo"/>
+        <where>
+            <if test="userMakeupexamId != null "> and user_makeupexam_id = #{userMakeupexamId}</if>
+            <if test="examId != null "> and exam_id = #{examId}</if>
+            <if test="userId != null "> and user_id = #{userId}</if>
+        </where>
+    </select>
+
+    <select id="selectEduMakeupExamUserVoList" parameterType="EduExamUserVo" resultMap="EduMakeupExamUserVoResult">
+        SELECT
+        emu.user_makeupexam_id AS user_makeupexam_id,
+        emu.user_id AS user_id,
+        e.course_id AS course_id,
+        c.course_name AS course_name,
+        e.start_time AS start_time,
+        e.exam_time AS exam_time,
+        e.exam_classroom AS exam_classroom,
+        u.nick_name AS user_name
+        FROM
+        edu_makeupexam_user emu
+        JOIN
+        edu_exam e ON emu.exam_id = e.exam_id
+        JOIN
+        sys_user u ON emu.user_id = u.user_id
+        JOIN
+        edu_course c ON e.course_id = c.course_id
+        <where>
+            <if test="userId != null "> and emu.user_id = #{userId}</if>
+            <if test="userName != null and userName != ''"> and u.nick_name like concat('%', #{userName}, '%')</if>
+            <if test="courseId != null "> and e.course_id = #{courseId}</if>
+            <if test="courseName != null and courseName != ''"> and c.course_name like concat('%', #{courseName}, '%')</if>
+            <if test="startTime != null  and startTime != ''"> and e.start_time = #{startTime}</if>
+            <if test="examTime != null and examTime != ''"> and e.exam_time like concat('%', #{examTime}, '%')</if>
+            <if test="examClassroom != null and examClassroom != ''"> and e.exam_classroom like concat('%', #{examClassroom}, '%')</if>
+        </where>
+    </select>
+
+    <resultMap type="EduExamUserVo" id="EduMakeupExamUserVoResult">
+        <result property="userMakeupexamId" column="user_makeupexam_id" />
+        <result property="userId" column="user_id" />
+        <result property="courseId" column="course_id" />
+        <result property="courseName" column="course_name" />
+        <result property="startTime" column="start_time" />
+        <result property="examTime" column="exam_time" />
+        <result property="examClassroom" column="exam_classroom" />
+        <result property="userName" column="user_name" />
+    </resultMap>
+
+    <select id="selectEduMakeupexamUserByUserMakeupexamId" parameterType="Long" resultMap="EduMakeupexamUserResult">
+        <include refid="selectEduMakeupexamUserVo"/>
+        where user_makeupexam_id = #{userMakeupexamId}
+    </select>
+
+    <insert id="insertEduMakeupexamUser" parameterType="EduMakeupexamUser">
+        insert into edu_makeupexam_user
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="examId != null">exam_id,</if>
+            <if test="userId != null">user_id,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="examId != null">#{examId},</if>
+            <if test="userId != null">#{userId},</if>
+         </trim>
+    </insert>
+
+    <update id="updateEduMakeupexamUser" parameterType="EduMakeupexamUser">
+        update edu_makeupexam_user
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="examId != null">exam_id = #{examId},</if>
+            <if test="userId != null">user_id = #{userId},</if>
+        </trim>
+        where user_makeupexam_id = #{userMakeupexamId}
+    </update>
+
+    <delete id="deleteEduMakeupexamUserByUserMakeupexamId" parameterType="Long">
+        delete from edu_makeupexam_user where user_makeupexam_id = #{userMakeupexamId}
+    </delete>
+
+    <delete id="deleteEduMakeupexamUserByUserMakeupexamIds" parameterType="String">
+        delete from edu_makeupexam_user where user_makeupexam_id in
+        <foreach item="userMakeupexamId" collection="array" open="(" separator="," close=")">
+            #{userMakeupexamId}
+        </foreach>
+    </delete>
+</mapper>

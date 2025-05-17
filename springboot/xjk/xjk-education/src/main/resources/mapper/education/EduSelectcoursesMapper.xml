@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xjk.education.mapper.EduSelectcoursesMapper">
+
+    <resultMap type="EduSelectcourses" id="EduSelectcoursesResult">
+        <result property="selectId"    column="select_id"    />
+        <result property="courseId"    column="course_id"    />
+        <result property="teacherId"    column="teacher_id"    />
+        <result property="remainingSeats"    column="remaining_seats"    />
+        <result property="startTime"    column="start_time"    />
+    </resultMap>
+
+    <sql id="selectEduSelectcoursesVo">
+        select select_id, course_id, teacher_id, remaining_seats, start_time from edu_selectcourses
+    </sql>
+
+    <select id="selectEduSelectcoursesList" parameterType="EduSelectcourses" resultMap="EduSelectcoursesResult">
+        <include refid="selectEduSelectcoursesVo"/>
+        <where>
+            <if test="selectId != null "> and select_id = #{selectId}</if>
+            <if test="courseId != null "> and course_id = #{courseId}</if>
+            <if test="teacherId != null "> and teacher_id = #{teacherId}</if>
+            <if test="remainingSeats != null "> and remaining_seats = #{remainingSeats}</if>
+            <if test="startTime != null  and startTime != ''"> and start_time = #{startTime}</if>
+        </where>
+    </select>
+
+    <select id="selectEduSelectcoursesVoList" parameterType="EduSelectcourses" resultMap="EduSelectcoursesVoResult">
+        SELECT
+            sc.select_id,
+            c.course_id,
+            c.course_name,
+            c.course_description,
+            c.credits,
+            t.name,
+            sc.remaining_seats,
+            sc.start_time
+        FROM
+            edu_selectcourses sc
+                JOIN
+            edu_course c ON sc.course_id = c.course_id
+                JOIN
+            edu_teachers t ON sc.teacher_id = t.teacher_id
+        <where>
+            <if test="selectId != null "> and sc.select_id = #{selectId}</if>
+            <if test="courseId != null "> and c.course_id = #{courseId}</if>
+            <if test="courseName != null and courseName != ''"> and c.course_name like concat('%', #{courseName}, '%')</if>
+            <if test="teacherName != null and teacherName != ''"> and t.name like concat('%', #{teacherName}, '%')</if>
+            <if test="credits != null "> and c.credits = #{credits}</if>
+            <if test="remainingSeats != null "> and remaining_seats = #{remainingSeats}</if>
+            <if test="startTime != null  and startTime != ''"> and start_time = #{startTime}</if>
+        </where>
+        ORDER BY
+            sc.select_id
+    </select>
+
+
+    <resultMap type="com.xjk.education.domain.vo.EduSelectcourseVo" id="EduSelectcoursesVoResult">
+        <result property="selectId" column="select_id"/>
+        <result property="courseId" column="course_id"/>
+        <result property="courseName" column="course_name"/>
+        <result property="courseDescription" column="course_description"/>
+        <result property="credits" column="credits"/>
+        <result property="teacherName" column="name"/>
+        <result property="remainingSeats" column="remaining_seats"/>
+        <result property="startTime" column="start_time"/>
+    </resultMap>
+
+    <!-- 新增的检测课程是否剩余方法 -->
+    <select id="checkCourseRemainingCapacity" resultType="int">
+        SELECT remaining_seats FROM edu_selectcourses WHERE select_id = #{selectId}
+    </select>
+
+    <!-- 新增的检测课程是否重复选方法 -->
+    <select id="checkIfUserSelectedCourse" resultType="int">
+        SELECT COUNT(*) FROM edu_userselectcourses WHERE user_id = #{userId} AND select_id = #{selectId}
+    </select>
+
+    <select id="selectEduSelectcoursesBySelectId" parameterType="Long" resultMap="EduSelectcoursesResult">
+        <include refid="selectEduSelectcoursesVo"/>
+        where select_id = #{selectId}
+    </select>
+
+    <insert id="insertEduSelectcourses" parameterType="EduSelectcourses" useGeneratedKeys="true" keyProperty="selectId">
+        insert into edu_selectcourses
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="courseId != null">course_id,</if>
+            <if test="teacherId != null">teacher_id,</if>
+            <if test="remainingSeats != null">remaining_seats,</if>
+            <if test="startTime != null and startTime != ''">start_time,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="courseId != null">#{courseId},</if>
+            <if test="teacherId != null">#{teacherId},</if>
+            <if test="remainingSeats != null">#{remainingSeats},</if>
+            <if test="startTime != null and startTime != ''">#{startTime},</if>
+         </trim>
+    </insert>
+
+    <update id="updateEduSelectcourses" parameterType="EduSelectcourses">
+        update edu_selectcourses
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="courseId != null">course_id = #{courseId},</if>
+            <if test="teacherId != null">teacher_id = #{teacherId},</if>
+            <if test="remainingSeats != null">remaining_seats = #{remainingSeats},</if>
+            <if test="startTime != null and startTime != ''">start_time = #{startTime},</if>
+        </trim>
+        where select_id = #{selectId}
+    </update>
+
+    <delete id="deleteEduSelectcoursesBySelectId" parameterType="Long">
+        delete from edu_selectcourses where select_id = #{selectId}
+    </delete>
+
+    <delete id="deleteEduSelectcoursesBySelectIds" parameterType="String">
+        delete from edu_selectcourses where select_id in
+        <foreach item="selectId" collection="array" open="(" separator="," close=")">
+            #{selectId}
+        </foreach>
+    </delete>
+</mapper>

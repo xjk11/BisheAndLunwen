@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xjk.education.mapper.EduMakeupMapper">
+
+    <resultMap type="EduMakeup" id="EduMakeupResult">
+        <result property="makeupId"    column="makeup_id"    />
+        <result property="studentId"    column="student_id"    />
+        <result property="teacherId"    column="teacher_id"    />
+        <result property="courseId"    column="course_id"    />
+        <result property="examDate"    column="exam_date"    />
+        <result property="examScore"    column="exam_score"    />
+        <result property="makeupScore"    column="makeup_score"    />
+        <result property="startTime"    column="start_time"    />
+    </resultMap>
+
+    <sql id="selectEduMakeupVo">
+        select makeup_id, student_id, course_id, teacher_id, exam_date, exam_score, makeup_score, start_time from edu_makeup
+    </sql>
+
+    <select id="selectEduMakeupList" parameterType="EduMakeup" resultMap="EduMakeupResult">
+        <include refid="selectEduMakeupVo"/>
+        <where>
+            <if test="makeupId != null "> and makeup_id = #{makeupId}</if>
+            <if test="studentId != null "> and student_id = #{studentId}</if>
+            <if test="courseId != null "> and course_id = #{courseId}</if>
+            <if test="params.beginExamDate != null and params.beginExamDate != '' and params.endExamDate != null and params.endExamDate != ''"> and exam_date between #{params.beginExamDate} and #{params.endExamDate}</if>
+            <if test="examScore != null "> and exam_score = #{examScore}</if>
+            <if test="makeupScore != null  and makeupScore != ''"> and makeup_score = #{makeupScore}</if>
+            <if test="startTime != null  and startTime != ''"> and start_time = #{startTime}</if>
+        </where>
+    </select>
+
+    <select id="selectStuEduMakeupList" parameterType="EduMakeup" resultMap="EduStuMakeupResult">
+        SELECT
+        m.makeup_id AS makeup_id,
+        m.exam_date AS exam_date,
+        m.exam_score AS exam_score,
+        m.makeup_score AS makeup_score,
+        m.start_time AS start_time,
+        s.name AS student_name,
+        et.name AS teacher_name,
+        s.user_id AS user_id,
+        c.course_name AS course_name
+        FROM
+        edu_makeup m
+        JOIN
+        edu_students s ON m.student_id = s.student_id
+        JOIN
+        edu_course c ON m.course_id = c.course_id
+        JOIN
+        edu_teachers et on m.teacher_id = et.teacher_id
+        <where>
+            <if test="userId != null "> and s.user_id = #{userId}</if>
+            <if test="makeupId != null "> and makeup_id = #{makeupId}</if>
+            <if test="studentName != null and studentName != ''"> and s.name like concat('%', #{studentName}, '%')</if>
+            <if test="courseName != null and courseName != ''"> and c.course_name like concat('%', #{courseName}, '%')</if>
+            <if test="params.beginExamDate != null and params.beginExamDate != '' and params.endExamDate != null and params.endExamDate != ''"> and exam_date between #{params.beginExamDate} and #{params.endExamDate}</if>
+            <if test="examScore != null "> and exam_score = #{examScore}</if>
+            <if test="makeupScore != null  and makeupScore != ''"> and makeup_score = #{makeupScore}</if>
+            <if test="startTime != null  and startTime != ''"> and start_time = #{startTime}</if>
+        </where>
+    </select>
+
+    <select id="selectTeaEduMakeupList" parameterType="EduMakeup" resultMap="EduStuMakeupResult">
+        SELECT
+        et.user_id AS user_id,
+        et.name AS teacher_name,
+        m.makeup_id AS makeup_id,
+        m.exam_date AS exam_date,
+        m.exam_score AS exam_score,
+        m.makeup_score AS makeup_score,
+        m.start_time AS start_time,
+        s.name AS student_name,
+        c.course_name AS course_name
+        FROM
+        edu_makeup m
+        JOIN
+        edu_students s ON m.student_id = s.student_id
+        JOIN
+        edu_course c ON m.course_id = c.course_id
+        JOIN
+        edu_teachers et on m.teacher_id = et.teacher_id
+        <where>
+            <if test="userId != null "> and et.user_id = #{userId}</if>
+            <if test="makeupId != null "> and makeup_id = #{makeupId}</if>
+            <if test="studentName != null and studentName != ''"> and s.name like concat('%', #{studentName}, '%')</if>
+            <if test="courseName != null and courseName != ''"> and c.course_name like concat('%', #{courseName}, '%')</if>
+            <if test="params.beginExamDate != null and params.beginExamDate != '' and params.endExamDate != null and params.endExamDate != ''"> and exam_date between #{params.beginExamDate} and #{params.endExamDate}</if>
+            <if test="examScore != null "> and exam_score = #{examScore}</if>
+            <if test="makeupScore != null  and makeupScore != ''"> and makeup_score = #{makeupScore}</if>
+            <if test="startTime != null  and startTime != ''"> and start_time = #{startTime}</if>
+        </where>
+    </select>
+
+    <resultMap type="com.xjk.education.domain.vo.EduStuMakeupVo" id="EduStuMakeupResult">
+        <id property="makeupId" column="makeup_id" />
+        <result property="examDate" column="exam_date" />
+        <result property="examScore" column="exam_score" />
+        <result property="makeupScore" column="makeup_score" />
+        <result property="startTime" column="start_time" />
+        <result property="studentName" column="student_name" />
+        <result property="teacherName" column="teacher_name" />
+        <result property="userId" column="user_id" />
+        <result property="courseName" column="course_name" />
+    </resultMap>
+
+    <select id="selectEduMakeupByMakeupId" parameterType="Long" resultMap="EduMakeupResult">
+        <include refid="selectEduMakeupVo"/>
+        where makeup_id = #{makeupId}
+    </select>
+
+    <insert id="insertEduMakeup" parameterType="EduMakeup" useGeneratedKeys="true" keyProperty="makeupId">
+        insert into edu_makeup
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="studentId != null">student_id,</if>
+            <if test="courseId != null">course_id,</if>
+            <if test="teacherId != null">teacher_id,</if>
+            <if test="examDate != null">exam_date,</if>
+            <if test="examScore != null">exam_score,</if>
+            <if test="makeupScore != null and makeupScore != ''">makeup_score,</if>
+            <if test="startTime != null and startTime != ''">start_time,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="studentId != null">#{studentId},</if>
+            <if test="courseId != null">#{courseId},</if>
+            <if test="teacherId != null">#{teacherId},</if>
+            <if test="examDate != null">#{examDate},</if>
+            <if test="examScore != null">#{examScore},</if>
+            <if test="makeupScore != null and makeupScore != ''">#{makeupScore},</if>
+            <if test="startTime != null and startTime != ''">#{startTime},</if>
+        </trim>
+    </insert>
+
+    <insert id="importInsertEduMakeup" parameterType="java.util.List" useGeneratedKeys="true" keyProperty="makeupId">
+        insert into edu_makeup (student_id, course_id, exam_date, exam_score, makeup_score, start_time)
+        values
+        <foreach collection="list" item="eduMakeup" separator=",">
+            (
+            #{eduMakeup.studentId},
+            #{eduMakeup.courseId},
+            #{eduMakeup.examDate},
+            #{eduMakeup.examScore},
+            #{eduMakeup.makeupScore},
+            #{eduMakeup.startTime}
+            )
+        </foreach>
+    </insert>
+
+    <update id="updateEduMakeup" parameterType="EduMakeup">
+        update edu_makeup
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="studentId != null">student_id = #{studentId},</if>
+            <if test="courseId != null">course_id = #{courseId},</if>
+            <if test="teacherId != null">teacher_id = #{teacherId},</if>
+            <if test="examDate != null">exam_date = #{examDate},</if>
+            <if test="examScore != null">exam_score = #{examScore},</if>
+            <if test="makeupScore != null and makeupScore != ''">makeup_score = #{makeupScore},</if>
+            <if test="startTime != null and startTime != ''">start_time = #{startTime},</if>
+        </trim>
+        where makeup_id = #{makeupId}
+    </update>
+
+    <delete id="deleteEduMakeupByMakeupId" parameterType="Long">
+        delete from edu_makeup where makeup_id = #{makeupId}
+    </delete>
+
+    <delete id="deleteEduMakeupByMakeupIds" parameterType="String">
+        delete from edu_makeup where makeup_id in
+        <foreach item="makeupId" collection="array" open="(" separator="," close=")">
+            #{makeupId}
+        </foreach>
+    </delete>
+</mapper>

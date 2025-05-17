@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xjk.education.mapper.EduTeachersMapper">
+
+    <resultMap type="EduTeachers" id="EduTeachersResult">
+        <result property="teacherId"    column="teacher_id"    />
+        <result property="userId"    column="user_id"    />
+        <result property="name"    column="name"    />
+        <result property="gender"    column="gender"    />
+        <result property="title"    column="title"    />
+        <result property="deptId"    column="dept_id"    />
+        <result property="hireDate"    column="hire_date"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+    </resultMap>
+
+    <select id="selectTeacherIdByUserId" parameterType="Long" resultType="Long">
+        select teacher_id from edu_teachers where user_id = #{userId}
+    </select>
+
+    <sql id="selectEduTeachersVo">
+        select teacher_id, user_id, name, gender, title, dept_id, hire_date, create_by, create_time, update_by, update_time from edu_teachers
+    </sql>
+
+    <select id="selectEduTeachersList" parameterType="EduTeachers" resultMap="EduTeachersResult">
+        <include refid="selectEduTeachersVo"/>
+        <where>
+            <if test="teacherId != null "> and teacher_id = #{teacherId}</if>
+            <if test="name != null  and name != ''"> and name like concat('%', #{name}, '%')</if>
+            <if test="gender != null  and gender != ''"> and gender = #{gender}</if>
+            <if test="title != null  and title != ''"> and title = #{title}</if>
+            <if test="deptId != null "> and dept_id = #{deptId}</if>
+            <if test="params.beginHireDate != null and params.beginHireDate != '' and params.endHireDate != null and params.endHireDate != ''"> and hire_date between #{params.beginHireDate} and #{params.endHireDate}</if>
+        </where>
+    </select>
+
+    <select id="teacherSelectStudent" parameterType="EduStudents" resultMap="EduTeacherSelectStudentsResult">
+        SELECT
+        t.user_id AS teacher_user_id,
+        t.name AS teacher_name,
+        s.name AS student_name,
+        s.gender AS student_gender,
+        s.major AS student_major,
+        s.dept_id AS dept_id,
+        c.class_name AS student_class,
+        s.enrollment_date AS student_enrollment_date,
+        su.phonenumber AS student_phonenumber
+        FROM
+        edu_tea_stu ts
+        JOIN
+        edu_students s ON ts.student_id = s.student_id
+        JOIN
+        edu_teachers t ON ts.teacher_id = t.teacher_id
+        JOIN
+        edu_class c ON s.class_id = c.class_id
+        JOIN
+        sys_user su ON s.user_id = su.user_id
+        <where>
+            <if test="userId != null "> and  t.user_id = #{userId}</if>
+            <if test="gender != null "> and  s.gender = #{gender}</if>
+            <if test="name != null and name != ''"> and s.name like concat('%', #{name}, '%')</if>
+            <if test="deptId != null "> and s.dept_id = #{deptId}</if>
+            <if test="className != null and className != ''"> and s.class like concat('%', #{className}, '%')</if>
+            <if test="major != null and major != ''"> and s.major like concat('%', #{major}, '%')</if>
+            <if test="phoneNumber != null and phoneNumber != ''"> and su.phonenumber like concat('%', #{phoneNumber}, '%')</if>
+            <if test="params.beginEnrollmentDate != null and params.beginEnrollmentDate != '' and params.endEnrollmentDate != null and params.endEnrollmentDate != ''"> and s.enrollment_date between #{params.beginEnrollmentDate} and #{params.endEnrollmentDate}</if>
+        </where>
+    </select>
+
+    <resultMap id="EduTeacherSelectStudentsResult" type="com.xjk.education.domain.vo.EduTeacherSelectStudentVo">
+        <result property="teacherUserId" column="teacher_user_id"/>
+        <result property="teacherName" column="teacher_name"/>
+        <result property="studentName" column="student_name"/>
+        <result property="studentGender" column="student_gender"/>
+        <result property="studentMajor" column="student_major"/>
+        <result property="deptId" column="dept_id"/>
+        <result property="studentClass" column="student_class"/>
+        <result property="studentPhonenumber" column="student_phonenumber"/>
+        <result property="studentEnrollmentDate" column="student_enrollment_date"/>
+    </resultMap>
+
+
+    <select id="selectEduTeachersByTeacherId" parameterType="Long" resultMap="EduTeachersResult">
+        <include refid="selectEduTeachersVo"/>
+        where teacher_id = #{teacherId}
+    </select>
+
+    <insert id="insertEduTeachers" parameterType="EduTeachers" useGeneratedKeys="true" keyProperty="teacherId">
+        insert into edu_teachers
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="userId != null">user_id,</if>
+            <if test="name != null and name != ''">name,</if>
+            <if test="gender != null and gender != ''">gender,</if>
+            <if test="title != null and title != ''">title,</if>
+            <if test="deptId != null">dept_id,</if>
+            <if test="hireDate != null">hire_date,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="userId != null">#{userId},</if>
+            <if test="name != null and name != ''">#{name},</if>
+            <if test="gender != null and gender != ''">#{gender},</if>
+            <if test="title != null and title != ''">#{title},</if>
+            <if test="deptId != null">#{deptId},</if>
+            <if test="hireDate != null">#{hireDate},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+         </trim>
+    </insert>
+
+    <insert id="importInsertEduTeachers" parameterType="java.util.List" useGeneratedKeys="true" keyProperty="teacherId">
+        <foreach collection="list" item="eduTeacher" separator=";">
+            insert into edu_teachers
+            <trim prefix="(" suffix=")" suffixOverrides=",">
+                <if test="eduTeacher.userId != null">user_id,</if>
+                <if test="eduTeacher.name != null and eduTeacher.name != ''">name,</if>
+                <if test="eduTeacher.gender != null and eduTeacher.gender != ''">gender,</if>
+                <if test="eduTeacher.title != null and eduTeacher.title != ''">title,</if>
+                <if test="eduTeacher.deptId != null">dept_id,</if>
+                <if test="eduTeacher.hireDate != null">hire_date,</if>
+            </trim>
+            <trim prefix="values (" suffix=")" suffixOverrides=",">
+                <if test="eduTeacher.userId != null">#{eduTeacher.userId},</if>
+                <if test="eduTeacher.name != null and eduTeacher.name != ''">#{eduTeacher.name},</if>
+                <if test="eduTeacher.gender != null and eduTeacher.gender != ''">#{eduTeacher.gender},</if>
+                <if test="eduTeacher.title != null and eduTeacher.title != ''">#{eduTeacher.title},</if>
+                <if test="eduTeacher.deptId != null">#{eduTeacher.deptId},</if>
+                <if test="eduTeacher.hireDate != null">#{eduTeacher.hireDate},</if>
+            </trim>
+        </foreach>
+    </insert>
+
+
+    <update id="updateEduTeachers" parameterType="EduTeachers">
+        update edu_teachers
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="userId != null">user_id = #{userId},</if>
+            <if test="name != null and name != ''">name = #{name},</if>
+            <if test="gender != null and gender != ''">gender = #{gender},</if>
+            <if test="title != null and title != ''">title = #{title},</if>
+            <if test="deptId != null">dept_id = #{deptId},</if>
+            <if test="hireDate != null">hire_date = #{hireDate},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </trim>
+        where teacher_id = #{teacherId}
+    </update>
+
+    <delete id="deleteEduTeachersByTeacherId" parameterType="Long">
+        delete from edu_teachers where teacher_id = #{teacherId}
+    </delete>
+
+    <delete id="deleteEduTeachersByTeacherIds" parameterType="String">
+        delete from edu_teachers where teacher_id in
+        <foreach item="teacherId" collection="array" open="(" separator="," close=")">
+            #{teacherId}
+        </foreach>
+    </delete>
+</mapper>

@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xjk.education.mapper.EduCourseMapper">
+
+    <resultMap type="EduCourse" id="EduCourseResult">
+        <result property="courseId"    column="course_id"    />
+        <result property="courseName"    column="course_name"    />
+        <result property="courseDescription"    column="course_description"    />
+        <result property="credits"    column="credits"    />
+        <result property="deptId"    column="dept_id"    />
+    </resultMap>
+
+    <sql id="selectEduCourseVo">
+        select course_id, course_name, course_description, credits, dept_id from edu_course
+    </sql>
+
+    <select id="selectEduCourseList" parameterType="EduCourse" resultMap="EduCourseResult">
+        <include refid="selectEduCourseVo"/>
+        <where>
+            <if test="courseId != null "> and course_id = #{courseId}</if>
+            <if test="courseName != null  and courseName != ''"> and course_name like concat('%', #{courseName}, '%')</if>
+            <if test="courseDescription != null  and courseDescription != ''"> and course_description = #{courseDescription}</if>
+            <if test="credits != null "> and credits = #{credits}</if>
+            <if test="deptId != null "> and dept_id = #{deptId}</if>
+        </where>
+    </select>
+
+    <!-- 新增的联合查询 -->
+    <select id="selectEduCourseScheduleList" parameterType="EduCourse" resultMap="EduCourseScheduleResult">
+        SELECT
+        es.schedule_id AS 'schedule_id',
+        su.nick_name AS 'user_name',
+        ec.course_name AS 'course_name',
+        et.name AS 'teacher_name',
+        es.classroom AS 'classroom',
+        es.lesson_time AS 'lesson_time',
+        es.start_time AS 'start_time',  -- 假设 start_time 表示开课学年
+        es.day_of_week AS 'day_of_week'
+        FROM
+        edu_schedule es
+        JOIN
+        sys_user su ON es.user_id = su.user_id
+        JOIN
+        edu_teachers et ON es.teacher_id = et.teacher_id
+        JOIN
+        edu_course ec ON es.course_id = ec.course_id
+        <where>
+            <if test="courseName != null  and courseName != ''"> and ec.course_name like concat('%', #{courseName}, '%')</if>
+            <if test="credits != null "> and ec.credits = #{credits}</if>
+            <if test="userName != null and userName != ''"> and su.user_name = #{userName}</if>
+            <if test="nickName != null and nickName != ''"> and su.nick_name like concat('%', #{nickName}, '%')</if>
+            <if test="userId != null and userId != ''"> and su.user_id = #{userId}</if>
+            <if test="teacherName != null and teacherName != ''"> and et.name like concat('%', #{teacherName}, '%')</if>
+            <if test="classroom != null and classroom != ''"> and es.classroom like concat('%', #{classroom}, '%')</if>
+            <if test="lessonTime != null and lessonTime != ''"> and es.lesson_time like concat('%', #{lessonTime}, '%')</if>
+            <if test="startTime != null and startTime != ''"> and es.start_time like concat('%', #{startTime}, '%')</if>
+            <if test="dayOfWeek != null and dayOfWeek != ''"> and es.day_of_week like concat('%', #{dayOfWeek}, '%')</if>
+        </where>
+    </select>
+
+    <!-- 新增的结果映射 -->
+    <resultMap type="com.xjk.education.domain.vo.EduCourseScheduleVo" id="EduCourseScheduleResult">
+        <result property="scheduleId" column="schedule_id"/>
+        <result property="userName" column="user_name"/>
+        <result property="courseName" column="course_name"/>
+        <result property="teacherName" column="teacher_name"/>
+        <result property="classroom" column="classroom"/>
+        <result property="lessonTime" column="lesson_time"/>
+        <result property="startTime" column="start_time"/>
+        <result property="dayOfWeek" column="day_of_week"/>
+    </resultMap>
+
+    <select id="selectEduCourseByCourseId" parameterType="Long" resultMap="EduCourseResult">
+        <include refid="selectEduCourseVo"/>
+        where course_id = #{courseId}
+    </select>
+
+    <insert id="insertEduCourse" parameterType="EduCourse" useGeneratedKeys="true" keyProperty="courseId">
+        insert into edu_course
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="courseName != null and courseName != ''">course_name,</if>
+            <if test="courseDescription != null and courseDescription != ''">course_description,</if>
+            <if test="credits != null">credits,</if>
+            <if test="deptId != null">dept_id,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="courseName != null and courseName != ''">#{courseName},</if>
+            <if test="courseDescription != null and courseDescription != ''">#{courseDescription},</if>
+            <if test="credits != null">#{credits},</if>
+            <if test="deptId != null">#{deptId},</if>
+         </trim>
+    </insert>
+
+    <update id="updateEduCourse" parameterType="EduCourse">
+        update edu_course
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="courseName != null and courseName != ''">course_name = #{courseName},</if>
+            <if test="courseDescription != null and courseDescription != ''">course_description = #{courseDescription},</if>
+            <if test="credits != null">credits = #{credits},</if>
+            <if test="deptId != null">dept_id = #{deptId},</if>
+        </trim>
+        where course_id = #{courseId}
+    </update>
+
+    <delete id="deleteEduCourseByCourseId" parameterType="Long">
+        delete from edu_course where course_id = #{courseId}
+    </delete>
+
+    <delete id="deleteEduCourseByCourseIds" parameterType="String">
+        delete from edu_course where course_id in
+        <foreach item="courseId" collection="array" open="(" separator="," close=")">
+            #{courseId}
+        </foreach>
+    </delete>
+</mapper>

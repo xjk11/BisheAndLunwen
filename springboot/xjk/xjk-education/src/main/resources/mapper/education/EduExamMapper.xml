@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xjk.education.mapper.EduExamMapper">
+
+    <resultMap type="EduExam" id="EduExamResult">
+        <result property="examId"    column="exam_id"    />
+        <result property="courseId"    column="course_id"    />
+        <result property="startTime"    column="start_time"    />
+        <result property="examTime"    column="exam_time"    />
+        <result property="examClassroom"    column="exam_classroom"    />
+    </resultMap>
+
+    <sql id="selectEduExamVo">
+        select exam_id, course_id, start_time, exam_time, exam_classroom from edu_exam
+    </sql>
+
+    <select id="selectEduExamList" parameterType="EduExam" resultMap="EduExamResult">
+        <include refid="selectEduExamVo"/>
+        <where>
+            <if test="examId != null "> and exam_id = #{examId}</if>
+            <if test="courseId != null "> and course_id = #{courseId}</if>
+            <if test="startTime != null  and startTime != ''"> and start_time = #{startTime}</if>
+            <if test="examTime != null  and examTime != ''"> and exam_time = #{examTime}</if>
+            <if test="examClassroom != null  and examClassroom != ''"> and exam_classroom = #{examClassroom}</if>
+        </where>
+    </select>
+
+    <select id="selectEduExamVoList" parameterType="EduExam" resultMap="EduExamVoResult">
+        SELECT
+        e.exam_id AS exam_id,
+        c.course_name AS course_name,
+        e.start_time AS start_time,
+        e.exam_time AS exam_time,
+        e.exam_classroom AS exam_classroom
+        FROM
+        edu_exam e
+        JOIN
+        edu_course c ON e.course_id = c.course_id
+        <where>
+            <if test="examId != null "> and exam_id = #{examId}</if>
+            <if test="courseId != null "> and course_id = #{courseId}</if>
+            <if test="courseName != null and courseName != ''"> and c.course_name like concat('%', #{courseName}, '%')</if>
+            <if test="startTime != null  and startTime != ''"> and start_time = #{startTime}</if>
+            <if test="examTime != null and examTime != ''"> and exam_time like concat('%', #{examTime}, '%')</if>
+            <if test="examClassroom != null and examClassroom != ''"> and exam_classroom like concat('%', #{examClassroom}, '%')</if>
+        </where>
+    </select>
+
+    <resultMap type="EduExamVo" id="EduExamVoResult">
+        <result property="examId"    column="exam_id"    />
+        <result property="courseName"    column="course_name"    />
+        <result property="courseId"    column="course_id"    />
+        <result property="startTime"    column="start_time"    />
+        <result property="examTime"    column="exam_time"    />
+        <result property="examClassroom"    column="exam_classroom"    />
+    </resultMap>
+
+    <select id="selectEduExamByExamId" parameterType="Long" resultMap="EduExamResult">
+        <include refid="selectEduExamVo"/>
+        where exam_id = #{examId}
+    </select>
+
+    <insert id="insertEduExam" parameterType="EduExam" useGeneratedKeys="true" keyProperty="examId">
+        insert into edu_exam
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="courseId != null">course_id,</if>
+            <if test="startTime != null and startTime != ''">start_time,</if>
+            <if test="examTime != null and examTime != ''">exam_time,</if>
+            <if test="examClassroom != null and examClassroom != ''">exam_classroom,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="courseId != null">#{courseId},</if>
+            <if test="startTime != null and startTime != ''">#{startTime},</if>
+            <if test="examTime != null and examTime != ''">#{examTime},</if>
+            <if test="examClassroom != null and examClassroom != ''">#{examClassroom},</if>
+         </trim>
+    </insert>
+
+    <update id="updateEduExam" parameterType="EduExam">
+        update edu_exam
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="courseId != null">course_id = #{courseId},</if>
+            <if test="startTime != null and startTime != ''">start_time = #{startTime},</if>
+            <if test="examTime != null and examTime != ''">exam_time = #{examTime},</if>
+            <if test="examClassroom != null and examClassroom != ''">exam_classroom = #{examClassroom},</if>
+        </trim>
+        where exam_id = #{examId}
+    </update>
+
+    <delete id="deleteEduExamByExamId" parameterType="Long">
+        delete from edu_exam where exam_id = #{examId}
+    </delete>
+
+    <delete id="deleteEduExamByExamIds" parameterType="String">
+        delete from edu_exam where exam_id in
+        <foreach item="examId" collection="array" open="(" separator="," close=")">
+            #{examId}
+        </foreach>
+    </delete>
+</mapper>

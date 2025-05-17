@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xjk.education.mapper.EduPlacementMapper">
+
+    <resultMap type="EduPlacement" id="EduPlacementResult">
+        <result property="gradeId"    column="grade_id"    />
+        <result property="userId"    column="user_id"    />
+        <result property="startTime"    column="start_time"    />
+        <result property="examDate"    column="exam_date"    />
+        <result property="examName"    column="exam_name"    />
+        <result property="score"    column="score"    />
+    </resultMap>
+
+    <sql id="selectEduPlacementVo">
+        select grade_id, user_id, start_time, exam_date, exam_name, score from edu_placement
+    </sql>
+
+    <select id="selectEduPlacementList" parameterType="EduPlacement" resultMap="EduPlacementResult">
+        <include refid="selectEduPlacementVo"/>
+        <where>
+            <if test="gradeId != null "> and grade_id = #{gradeId}</if>
+            <if test="userId != null "> and user_id = #{userId}</if>
+            <if test="startTime != null  and startTime != ''"> and start_time = #{startTime}</if>
+            <if test="params.beginExamDate != null and params.beginExamDate != '' and params.endExamDate != null and params.endExamDate != ''"> and exam_date between #{params.beginExamDate} and #{params.endExamDate}</if>
+            <if test="examName != null  and examName != ''"> and exam_name = #{examName}</if>
+            <if test="score != null "> and score = #{score}</if>
+        </where>
+    </select>
+
+    <select id="selectEduUserPlacementList" parameterType="EduPlacement" resultMap="EduUserPlacementResult">
+        SELECT
+        ep.grade_id AS grade_id,
+        es.student_id AS student_id,
+        ep.user_id AS user_id,
+        es.name AS student_name,
+        ep.start_time AS start_time,
+        ep.exam_date AS exam_date,
+        ep.exam_name AS exam_name,
+        ep.score AS score
+        FROM
+        edu_placement ep
+        JOIN
+        edu_students es ON ep.user_id = es.user_id
+        <where>
+            <if test="studentId != null "> and es.student_id = #{studentId}</if>
+            <if test="studentName != null and studentName != ''"> and es.name like concat('%', #{studentName}, '%')</if>
+            <if test="gradeId != null "> and ep.grade_id = #{gradeId}</if>
+            <if test="userId != null "> and ep.user_id = #{userId}</if>
+            <if test="startTime != null  and startTime != ''"> and ep.start_time = #{startTime}</if>
+            <if test="params.beginExamDate != null and params.beginExamDate != '' and params.endExamDate != null and params.endExamDate != ''"> and ep.exam_date between #{params.beginExamDate} and #{params.endExamDate}</if>
+            <if test="examName != null  and examName != ''"> and ep.exam_name = #{examName}</if>
+            <if test="score != null "> and ep.score = #{score}</if>
+        </where>
+    </select>
+
+    <resultMap type="com.xjk.education.domain.vo.EduPlacementVo" id="EduUserPlacementResult">
+        <result property="gradeId" column="grade_id" />
+        <result property="studentId" column="student_id"/>
+        <result property="userId" column="user_id" />
+        <result property="startTime" column="start_time" />
+        <result property="examDate" column="exam_date" />
+        <result property="examName" column="exam_name" />
+        <result property="score" column="score" />
+        <result property="studentName" column="student_name" /> <!-- 添加 username 字段 -->
+    </resultMap>
+
+    <select id="selectEduPlacementByGradeId" parameterType="Long" resultMap="EduPlacementResult">
+        <include refid="selectEduPlacementVo"/>
+        where grade_id = #{gradeId}
+    </select>
+
+    <insert id="insertEduPlacement" parameterType="EduPlacement" useGeneratedKeys="true" keyProperty="gradeId">
+        insert into edu_placement
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="userId != null">user_id,</if>
+            <if test="startTime != null and startTime != ''">start_time,</if>
+            <if test="examDate != null">exam_date,</if>
+            <if test="examName != null and examName != ''">exam_name,</if>
+            <if test="score != null">score,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="userId != null">#{userId},</if>
+            <if test="startTime != null and startTime != ''">#{startTime},</if>
+            <if test="examDate != null">#{examDate},</if>
+            <if test="examName != null and examName != ''">#{examName},</if>
+            <if test="score != null">#{score},</if>
+         </trim>
+    </insert>
+
+    <insert id="importInsertEduPlacement" parameterType="java.util.List" useGeneratedKeys="true" keyProperty="gradeId">
+        <foreach collection="list" item="eduPlacement" separator=";">
+            insert into edu_placement
+            <trim prefix="(" suffix=")" suffixOverrides=",">
+                <if test="eduPlacement.userId != null">user_id,</if>
+                <if test="eduPlacement.startTime != null and eduPlacement.startTime != ''">start_time,</if>
+                <if test="eduPlacement.examDate != null">exam_date,</if>
+                <if test="eduPlacement.examName != null and eduPlacement.examName != ''">exam_name,</if>
+                <if test="eduPlacement.score != null">score,</if>
+            </trim>
+            <trim prefix="values (" suffix=")" suffixOverrides=",">
+                <if test="eduPlacement.userId != null">#{eduPlacement.userId},</if>
+                <if test="eduPlacement.startTime != null and eduPlacement.startTime != ''">#{eduPlacement.startTime},</if>
+                <if test="eduPlacement.examDate != null">#{eduPlacement.examDate},</if>
+                <if test="eduPlacement.examName != null and eduPlacement.examName != ''">#{eduPlacement.examName},</if>
+                <if test="eduPlacement.score != null">#{eduPlacement.score},</if>
+            </trim>
+        </foreach>
+    </insert>
+
+
+    <update id="updateEduPlacement" parameterType="EduPlacement">
+        update edu_placement
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="userId != null">user_id = #{userId},</if>
+            <if test="startTime != null and startTime != ''">start_time = #{startTime},</if>
+            <if test="examDate != null">exam_date = #{examDate},</if>
+            <if test="examName != null and examName != ''">exam_name = #{examName},</if>
+            <if test="score != null">score = #{score},</if>
+        </trim>
+        where grade_id = #{gradeId}
+    </update>
+
+    <delete id="deleteEduPlacementByGradeId" parameterType="Long">
+        delete from edu_placement where grade_id = #{gradeId}
+    </delete>
+
+    <delete id="deleteEduPlacementByGradeIds" parameterType="String">
+        delete from edu_placement where grade_id in
+        <foreach item="gradeId" collection="array" open="(" separator="," close=")">
+            #{gradeId}
+        </foreach>
+    </delete>
+</mapper>
